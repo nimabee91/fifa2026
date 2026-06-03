@@ -11,6 +11,7 @@ const PHASE_LABELS = {
   finished: "Finished",
 };
 const ROUND_LABELS = { group: "Group stage", r32: "Round of 32", r16: "Round of 16", qf: "Quarterfinal", sf: "Semifinal", final: "Final" };
+const KO_LABELS = { r32: "Round of 32", r16: "Round of 16", qf: "Quarterfinals", sf: "Semifinals", final: "Final" };
 
 async function api(path, body, isAdmin) {
   const headers = { "content-type": "application/json" };
@@ -99,8 +100,88 @@ async function delTeam(teamId) {
   try { await api("/api/admin/team/delete", { teamId }, true); refresh(); }
   catch (e) { showMsg(e.message, false); }
 }
+async function saveMatchTeams(id) {
+  const home = $(`mh-${id}`).value, away = $(`ma-${id}`).value;
+  try {
+    await api("/api/admin/match/teams", { matchId: id, homeTeamId: home ? Number(home) : null, awayTeamId: away ? Number(away) : null }, true);
+    showMsg("Matchup set.", true); refresh();
+  } catch (e) { showMsg(e.message, false); }
+}
+async function saveMatchScore(id) {
+  const hEl = $(`hs-${id}`), aEl = $(`as-${id}`);
+  if (hEl.value === "" || aEl.value === "") { showMsg("Enter both scores.", false); return; }
+  const hs = Number(hEl.value), as = Number(aEl.value);
+  let winnerTeamId = null;
+  if (hs === as) {
+    const home = $(`mh-${id}`), away = $(`ma-${id}`);
+    const hName = home.options[home.selectedIndex]?.text || "home";
+    const aName = away.options[away.selectedIndex]?.text || "away";
+    const homeWon = confirm(`Level at ${hs}-${as}. Click OK if ${hName} won the penalty shootout, Cancel if ${aName} did.`);
+    winnerTeamId = homeWon ? Number(home.value) : Number(away.value);
+  }
+  try { await api("/api/admin/match/score", { matchId: id, homeScore: hs, awayScore: as, winnerTeamId }, true); showMsg("Result saved.", true); refresh(); }
+  catch (e) { showMsg(e.message, false); }
+}
+async function saveGroupScore(id) {
+  const hEl = $(`ghs-${id}`), aEl = $(`gas-${id}`);
+  if (hEl.value === "" || aEl.value === "") { showMsg("Enter both scores.", false); return; }
+  try { await api("/api/admin/match/score", { matchId: id, homeScore: Number(hEl.value), awayScore: Number(aEl.value) }, true); showMsg("Score saved.", true); refresh(); }
+  catch (e) { showMsg(e.message, false); }
+}
 // expose for inline handlers
-Object.assign(window, { togglePaid, eliminate, revive, champion, delTeam });
+Object.assign(window, { togglePaid, eliminate, revive, champion, delTeam, saveMatchTeams, saveMatchScore, saveGroupScore });
+
+function teamOptions(teams, selectedId) {
+  return `<option value="">— team —</option>` +
+    teams.map((t) => `<option value="${t.id}" ${t.id === selectedId ? "selected" : ""}>${t.flag} ${t.name}</option>`).join("");
+}
+
+function renderKoAdmin(state) {
+  const el = $("koAdmin");
+  const teams = [...state.teams].sort((a, b) => (a.grp || "").localeCompare(b.grp || "") || a.name.localeCompare(b.name));
+  el.innerHTML = (state.koRounds || []).map((r) => {
+    const ms = state.bracket[r] || [];
+    if (!ms.length) return "";
+    const rows = ms.map((m) => {
+      const hSel = m.home ? m.home.id : 0, aSel = m.away ? m.away.id : 0;
+      const hs = m.home_score != null ? m.home_score : "";
+      const as = m.away_score != null ? m.away_score : "";
+      return `<div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;border:1px solid var(--line);border-radius:8px;padding:6px;margin:4px 0;">
+        <select id="mh-${m.id}" style="width:auto;flex:1;min-width:110px;">${teamOptions(teams, hSel)}</select>
+        <input id="hs-${m.id}" type="number" min="0" value="${hs}" style="width:46px;text-align:center;" />
+        <span class="muted">-</span>
+        <input id="as-${m.id}" type="number" min="0" value="${as}" style="width:46px;text-align:center;" />
+        <select id="ma-${m.id}" style="width:auto;flex:1;min-width:110px;">${teamOptions(teams, aSel)}</select>
+        <button class="small secondary" onclick="saveMatchTeams(${m.id})">Set</button>
+        <button class="small" onclick="saveMatchScore(${m.id})">${m.played ? "Update" : "Score"}</button>
+        ${m.played ? '<span class="tag in">✓</span>' : ""}
+      </div>`;
+    }).join("");
+    return `<div style="margin-bottom:8px;"><div class="muted" style="font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;margin:8px 0 2px;">${KO_LABELS[r]}</div>${rows}</div>`;
+  }).join("");
+}
+
+function renderGroupAdmin(state) {
+  const el = $("groupAdmin");
+  const gf = state.groupFixtures || {};
+  el.innerHTML = Object.keys(gf).sort().map((g) => {
+    const rows = gf[g].map((m) => {
+      const hs = m.home_score != null ? m.home_score : "";
+      const as = m.away_score != null ? m.away_score : "";
+      const hn = m.home ? `${m.home.flag} ${m.home.name}` : "?";
+      const an = m.away ? `${m.away.flag} ${m.away.name}` : "?";
+      return `<div style="display:flex;gap:6px;align-items:center;margin:4px 0;font-size:.85rem;">
+        <span style="flex:1;text-align:right;">${hn}</span>
+        <input id="ghs-${m.id}" type="number" min="0" value="${hs}" style="width:44px;text-align:center;" />
+        <span class="muted">-</span>
+        <input id="gas-${m.id}" type="number" min="0" value="${as}" style="width:44px;text-align:center;" />
+        <span style="flex:1;">${an}</span>
+        <button class="small" onclick="saveGroupScore(${m.id})">${m.played ? "Update" : "Save"}</button>
+      </div>`;
+    }).join("");
+    return `<details style="margin:4px 0;"><summary style="cursor:pointer;color:var(--accent-2);font-weight:600;">Group ${g}</summary>${rows}</details>`;
+  }).join("");
+}
 
 function render(state) {
   $("curPhase").textContent = PHASE_LABELS[state.phase] || state.phase;
@@ -152,6 +233,9 @@ function render(state) {
       return `<h3>Group ${g || "?"}</h3><table>${rows}</table>`;
     })
     .join("");
+
+  renderKoAdmin(state);
+  renderGroupAdmin(state);
 }
 
 async function refresh() {

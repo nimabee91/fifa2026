@@ -69,6 +69,19 @@
       <div class="msg" id="msg"></div>
     </div>
 
+    <div class="card" id="photoCard" style="margin-bottom:16px;">
+      <h2>📸 Add your photo</h2>
+      <p class="muted">Upload a picture and it'll ride along next to your team in the standings and bracket.</p>
+      <div class="row">
+        <div><label for="avEmail">Email you joined with</label><input id="avEmail" type="email" placeholder="you@helixcollective.com" /></div>
+        <div><label for="avFile">Photo</label><input id="avFile" type="file" accept="image/*" /></div>
+      </div>
+      <div class="row" style="align-items:center;margin-top:12px;">
+        <div style="flex:0 0 auto;"><img id="avPreview" class="avatar lg" alt="" style="display:none;" /></div>
+        <div style="flex:0 0 auto;"><button id="avBtn" disabled>Save photo</button></div>
+      </div>
+    </div>
+
     <div class="card" style="margin-bottom:16px;">
       <h2>Standings</h2>
       <table>
@@ -77,6 +90,16 @@
         </thead>
         <tbody id="standings"></tbody>
       </table>
+    </div>
+
+    <div class="card" id="bracketCard" style="margin-bottom:16px;display:none;">
+      <h2>🏆 Knockout bracket</h2>
+      <div class="bracket-scroll"><div class="bracket" id="bracket"></div></div>
+    </div>
+
+    <div class="card" id="groupsCard" style="margin-bottom:16px;display:none;">
+      <h2>Group standings</h2>
+      <div class="groups-grid" id="groupsGrid"></div>
     </div>
 
     <div class="card">

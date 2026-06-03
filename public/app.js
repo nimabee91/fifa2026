@@ -26,6 +26,72 @@ function showMsg(text, ok) {
 
 function money(n) { return "$" + n; }
 
+function avatarTag(av, cls) {
+  return av ? `<img class="avatar ${cls || ""}" src="${av}" alt="">` : "";
+}
+function holdersTag(holders) {
+  const withPics = (holders || []).filter((h) => h.avatar);
+  if (!withPics.length) return "";
+  return `<span class="avatars">` +
+    withPics.map((h) => `<img class="avatar" src="${h.avatar}" alt="" title="${h.name}">`).join("") +
+    `</span>`;
+}
+
+const KO_LABELS = { r32: "Round of 32", r16: "Round of 16", qf: "Quarterfinals", sf: "Semifinals", final: "Final" };
+
+function matchSide(team, m, isHome) {
+  if (!team) return `<div class="side tbd"><span class="nm">TBD</span></div>`;
+  const isWin = m.played && m.winner_team_id === team.id;
+  const isLose = m.played && m.winner_team_id && m.winner_team_id !== team.id;
+  const sc = isHome ? m.home_score : m.away_score;
+  const scTxt = m.played && sc != null ? sc : "";
+  return `<div class="side ${isWin ? "win" : ""} ${isLose ? "lose" : ""}">` +
+    `<span>${team.flag}</span><span class="nm">${team.name}</span>${holdersTag(team.holders)}` +
+    `<span class="sc">${scTxt}</span></div>`;
+}
+
+function renderBracket(state) {
+  const card = $("bracketCard"), el = $("bracket");
+  const rounds = state.koRounds || ["r32", "r16", "qf", "sf", "final"];
+  const any = rounds.some((r) => (state.bracket[r] || []).some((m) => m.home || m.away || m.played));
+  if (!any) { card.style.display = "none"; return; }
+  card.style.display = "";
+  el.innerHTML = rounds
+    .map((r) => {
+      const matches = state.bracket[r] || [];
+      if (!matches.length) return "";
+      return `<div class="bracket-col"><h4>${KO_LABELS[r]}</h4>` +
+        matches.map((m) => `<div class="match">${matchSide(m.home, m, true)}${matchSide(m.away, m, false)}</div>`).join("") +
+        `</div>`;
+    })
+    .join("");
+}
+
+function renderGroups(state) {
+  const card = $("groupsCard"), grid = $("groupsGrid");
+  const gt = state.groupTables || {};
+  const keys = Object.keys(gt).sort();
+  const anyPlayed = keys.some((g) => gt[g].some((r) => r.P > 0));
+  if (!anyPlayed) { card.style.display = "none"; return; }
+  card.style.display = "";
+  grid.innerHTML = keys
+    .map((g) => {
+      const rows = gt[g];
+      return `<div class="group-box"><h4>Group ${g}</h4><table>` +
+        `<thead><tr><th></th><th>Team</th><th class="num">P</th><th class="num">W</th><th class="num">D</th><th class="num">L</th><th class="num">GD</th><th class="num">Pts</th></tr></thead><tbody>` +
+        rows
+          .map((r, i) =>
+            `<tr class="${i < 2 ? "adv" : ""} ${r.status !== "alive" ? "team-out" : ""}">` +
+            `<td class="pos">${i + 1}</td><td>${r.flag} ${r.name}</td>` +
+            `<td class="num">${r.P}</td><td class="num">${r.W}</td><td class="num">${r.D}</td><td class="num">${r.L}</td>` +
+            `<td class="num">${r.GD > 0 ? "+" : ""}${r.GD}</td><td class="num"><b>${r.Pts}</b></td></tr>`
+          )
+          .join("") +
+        `</tbody></table></div>`;
+    })
+    .join("");
+}
+
 function render(state) {
   // Phase + pot
   $("phaseLabel").textContent = PHASE_LABELS[state.phase] || state.phase;
@@ -91,7 +157,7 @@ function render(state) {
           const paid = p.total_owed === 0
             ? `<span class="tag paid">Paid</span>`
             : `<span class="tag unpaid">Owes ${money(p.total_owed)}</span>`;
-          return `<tr><td>${p.name}</td><td>${team}${champ}</td><td>${status}</td><td>${paid}</td><td>${money(p.total_paid + p.total_owed)}</td></tr>`;
+          return `<tr><td>${avatarTag(p.avatar)} ${p.name}</td><td>${team}${champ}</td><td>${status}</td><td>${paid}</td><td>${money(p.total_paid + p.total_owed)}</td></tr>`;
         })
         .join("")
     : `<tr><td colspan="5" class="muted center">No one has joined yet — be first!</td></tr>`;
@@ -112,6 +178,9 @@ function render(state) {
       return `<h3>Group ${g || "?"}</h3><div>${rows}</div>`;
     })
     .join("");
+
+  renderBracket(state);
+  renderGroups(state);
 }
 
 async function load() {
@@ -154,6 +223,63 @@ $("buybackBtn").addEventListener("click", async () => {
     });
     showMsg("You're back in! 🔁", true);
     $("bbEmail").value = "";
+    load();
+  } catch (e) {
+    showMsg(e.message, false);
+  }
+});
+
+// ---- Photo upload (resized client-side to a small square) ----
+let avatarDataUrl = null;
+
+function resizeImage(file, size) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        const c = document.createElement("canvas");
+        c.width = c.height = size;
+        const ctx = c.getContext("2d");
+        const scale = Math.max(size / img.width, size / img.height);
+        const w = img.width * scale, h = img.height * scale;
+        ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+        resolve(c.toDataURL("image/jpeg", 0.82));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+$("avFile").addEventListener("change", async () => {
+  const f = $("avFile").files[0];
+  if (!f) { avatarDataUrl = null; $("avBtn").disabled = true; $("avPreview").style.display = "none"; return; }
+  try {
+    avatarDataUrl = await resizeImage(f, 256);
+    $("avPreview").src = avatarDataUrl;
+    $("avPreview").style.display = "";
+    $("avBtn").disabled = false;
+  } catch (e) {
+    showMsg("Couldn't read that image — try another.", false);
+  }
+});
+
+$("avBtn").addEventListener("click", async () => {
+  if (!avatarDataUrl) return;
+  try {
+    await api("/api/avatar", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: $("avEmail").value, avatar: avatarDataUrl }),
+    });
+    showMsg("Photo saved! 📸", true);
+    $("avFile").value = "";
+    avatarDataUrl = null;
+    $("avBtn").disabled = true;
+    $("avPreview").style.display = "none";
     load();
   } catch (e) {
     showMsg(e.message, false);
