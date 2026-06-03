@@ -170,7 +170,7 @@ async function getState(env: Env): Promise<Response> {
   for (const t of teams) if (t.grp) (byGroup[t.grp] ||= []).push(t);
   for (const g of Object.keys(byGroup)) {
     const stat = new Map<number, any>();
-    for (const t of byGroup[g]) stat.set(t.id, { id: t.id, name: t.name, flag: t.flag, status: t.status, P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, Pts: 0 });
+    for (const t of byGroup[g]) stat.set(t.id, { id: t.id, name: t.name, flag: t.flag, status: t.status, holders: teamHolders(t.id), P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, Pts: 0 });
     for (const m of matches) {
       if (m.round !== "group" || m.grp !== g || !m.played) continue;
       const h = stat.get(m.home_team_id), a = stat.get(m.away_team_id);

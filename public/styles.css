@@ -134,23 +134,34 @@ details.rules li { margin: 4px 0; }
 .avatars .avatar { margin-left: -6px; }
 .avatars .avatar:first-child { margin-left: 0; }
 
-/* Group tables */
-.groups-grid { display: grid; gap: 14px; grid-template-columns: repeat(2, 1fr); }
-@media (max-width: 640px) { .groups-grid { grid-template-columns: 1fr; } }
-.group-box { background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
-.group-box h4 { margin: 0 0 8px; font-size: 0.9rem; color: var(--accent-2); }
-.group-box table { font-size: 0.82rem; }
-.group-box th, .group-box td { padding: 5px 6px; }
-.group-box td.num, .group-box th.num { text-align: center; width: 28px; }
-.group-box tr.adv td { color: var(--text); }
-.group-box .pos { color: var(--muted); width: 16px; }
-.team-out { opacity: .5; text-decoration: line-through; }
+/* Connected tournament flow: group stage -> knockout rounds, left to right */
+.flow-scroll { overflow-x: auto; padding-bottom: 10px; }
+.flow { display: inline-flex; gap: 22px; align-items: flex-start; min-width: 100%; }
+.flow-col { display: flex; flex-direction: column; gap: 10px; min-width: 200px; }
+.flow-col > h4 {
+  margin: 0 0 4px; font-size: 0.8rem; color: var(--accent-2);
+  text-transform: uppercase; letter-spacing: .04em; text-align: center;
+  position: sticky; left: 0;
+}
+.stage-groups { min-width: 248px; }
 
-/* Bracket */
-.bracket-scroll { overflow-x: auto; padding-bottom: 8px; }
-.bracket { display: inline-flex; gap: 26px; min-width: 100%; align-items: stretch; }
-.bracket-col { display: flex; flex-direction: column; justify-content: space-around; gap: 12px; min-width: 190px; }
-.bracket-col h4 { margin: 0 0 4px; font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; text-align: center; }
+/* Group tables (inside the group-stage column) */
+.group-box { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px; }
+.group-box h4 { margin: 0 0 6px; font-size: 0.82rem; color: var(--muted); }
+.group-box table { font-size: 0.8rem; }
+.group-box td { padding: 3px 4px; }
+.group-box td.num { text-align: center; width: 26px; color: var(--muted); }
+.group-box td.pts { color: var(--text); }
+.group-box .pos { color: var(--muted); width: 14px; text-align: center; }
+.group-box .gname { max-width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.group-box .gflag { margin-right: 4px; }
+.group-box tr.adv .gname { color: var(--text); font-weight: 600; }
+.group-box .avatars { margin-left: 4px; }
+.group-box .avatar { width: 16px; height: 16px; }
+.team-out { opacity: .5; }
+.team-out .gname { text-decoration: line-through; }
+
+/* Match cards (knockout columns) */
 .match {
   background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
 }

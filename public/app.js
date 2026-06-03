@@ -50,46 +50,42 @@ function matchSide(team, m, isHome) {
     `<span class="sc">${scTxt}</span></div>`;
 }
 
-function renderBracket(state) {
-  const card = $("bracketCard"), el = $("bracket");
-  const rounds = state.koRounds || ["r32", "r16", "qf", "sf", "final"];
-  const any = rounds.some((r) => (state.bracket[r] || []).some((m) => m.home || m.away || m.played));
-  if (!any) { card.style.display = "none"; return; }
-  card.style.display = "";
-  el.innerHTML = rounds
-    .map((r) => {
-      const matches = state.bracket[r] || [];
-      if (!matches.length) return "";
-      return `<div class="bracket-col"><h4>${KO_LABELS[r]}</h4>` +
-        matches.map((m) => `<div class="match">${matchSide(m.home, m, true)}${matchSide(m.away, m, false)}</div>`).join("") +
-        `</div>`;
-    })
-    .join("");
-}
-
-function renderGroups(state) {
-  const card = $("groupsCard"), grid = $("groupsGrid");
+// One connected left-to-right flow: Group stage -> R32 -> R16 -> QF -> SF -> Final.
+function groupStageColumn(state) {
   const gt = state.groupTables || {};
   const keys = Object.keys(gt).sort();
-  const anyPlayed = keys.some((g) => gt[g].some((r) => r.P > 0));
-  if (!anyPlayed) { card.style.display = "none"; return; }
-  card.style.display = "";
-  grid.innerHTML = keys
+  const tables = keys
     .map((g) => {
       const rows = gt[g];
-      return `<div class="group-box"><h4>Group ${g}</h4><table>` +
-        `<thead><tr><th></th><th>Team</th><th class="num">P</th><th class="num">W</th><th class="num">D</th><th class="num">L</th><th class="num">GD</th><th class="num">Pts</th></tr></thead><tbody>` +
+      return `<div class="group-box"><h4>Group ${g}</h4><table><tbody>` +
         rows
           .map((r, i) =>
             `<tr class="${i < 2 ? "adv" : ""} ${r.status !== "alive" ? "team-out" : ""}">` +
-            `<td class="pos">${i + 1}</td><td>${r.flag} ${r.name}</td>` +
-            `<td class="num">${r.P}</td><td class="num">${r.W}</td><td class="num">${r.D}</td><td class="num">${r.L}</td>` +
-            `<td class="num">${r.GD > 0 ? "+" : ""}${r.GD}</td><td class="num"><b>${r.Pts}</b></td></tr>`
+            `<td class="pos">${i + 1}</td>` +
+            `<td class="gname"><span class="gflag">${r.flag}</span>${r.name}${holdersTag(r.holders)}</td>` +
+            `<td class="num">${r.P}</td>` +
+            `<td class="num">${r.GD > 0 ? "+" : ""}${r.GD}</td>` +
+            `<td class="num pts"><b>${r.Pts}</b></td></tr>`
           )
           .join("") +
         `</tbody></table></div>`;
     })
     .join("");
+  return `<div class="flow-col stage-groups"><h4>Group stage</h4>${tables}</div>`;
+}
+
+function renderFlow(state) {
+  const flow = $("flow");
+  const cols = [groupStageColumn(state)];
+  for (const r of state.koRounds || ["r32", "r16", "qf", "sf", "final"]) {
+    const matches = state.bracket[r] || [];
+    cols.push(
+      `<div class="flow-col"><h4>${KO_LABELS[r]}</h4>` +
+        matches.map((m) => `<div class="match">${matchSide(m.home, m, true)}${matchSide(m.away, m, false)}</div>`).join("") +
+        `</div>`
+    );
+  }
+  flow.innerHTML = cols.join("");
 }
 
 function render(state) {
@@ -179,8 +175,7 @@ function render(state) {
     })
     .join("");
 
-  renderBracket(state);
-  renderGroups(state);
+  renderFlow(state);
 }
 
 async function load() {
