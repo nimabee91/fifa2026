@@ -15,7 +15,7 @@
       "database_name": "fifa2026-db",
       // Replace this after running `wrangler d1 create fifa2026-db`.
       // A placeholder is fine for local `wrangler dev`.
-      "database_id": "REPLACE_WITH_YOUR_DATABASE_ID"
+      "database_id": "60ffb8e5-86d8-4136-91ac-aba4e04670e2"
     }
   ]
 }
