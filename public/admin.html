@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin · Helix World Cup Pool</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <div>
+        <h1>🛠️ Pool Admin</h1>
+        <div class="sub">Run the tournament: advance phases, knock out teams, mark who's paid.</div>
+      </div>
+      <a class="navlink" href="/">← Back to pool</a>
+    </header>
+
+    <!-- Login gate -->
+    <div class="card" id="loginCard">
+      <h2>Admin login</h2>
+      <label for="pw">Admin password</label>
+      <input id="pw" type="password" placeholder="••••••••" />
+      <div style="margin-top:14px;"><button id="loginBtn">Unlock</button></div>
+      <div class="msg" id="loginMsg"></div>
+    </div>
+
+    <div id="adminBody" style="display:none;">
+      <div class="msg" id="msg"></div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <h2>Tournament phase</h2>
+        <p class="muted">Current: <b id="curPhase">…</b></p>
+        <div class="row">
+          <button class="secondary small" data-phase="signup">1 · Sign-ups</button>
+          <button class="secondary small" data-phase="group_stage">2 · Group stage</button>
+          <button class="secondary small" data-phase="r32_buyback">3 · R32 buy-back ($10)</button>
+          <button class="secondary small" data-phase="r16_buyback">4 · R16 buy-back ($15)</button>
+          <button class="secondary small" data-phase="closed">5 · Bets closed</button>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <h2>Players &amp; payments</h2>
+        <p class="muted">Toggle each stake as paid once they've settled up (Venmo/cash).</p>
+        <table>
+          <thead><tr><th>Player</th><th>Stakes</th><th>Status</th></tr></thead>
+          <tbody id="playersTbl"></tbody>
+        </table>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <h2>Teams — knock out / set champion</h2>
+        <p class="muted">After each round, eliminate the teams that lost. Set the champion at the very end.</p>
+        <div id="teamsAdmin"></div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <h2>Edit / add teams</h2>
+        <p class="muted">Fix the seed data if a team or group is wrong.</p>
+        <div class="row">
+          <div><label>Name</label><input id="tName" placeholder="Team name" /></div>
+          <div><label>Flag emoji</label><input id="tFlag" placeholder="🇧🇷" /></div>
+          <div><label>Group</label><input id="tGrp" placeholder="A" maxlength="2" /></div>
+        </div>
+        <div style="margin-top:12px;"><button id="addTeamBtn" class="secondary">Add team</button></div>
+      </div>
+
+      <div class="card">
+        <h2 style="color:var(--danger);">Danger zone</h2>
+        <p class="muted">Wipes all players and stakes and resets teams to alive. Use only to restart.</p>
+        <button id="resetBtn" class="danger">Reset entire pool</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/admin.js"></script>
+</body>
+</html>

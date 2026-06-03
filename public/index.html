@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Helix World Cup 2026 Pool</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <div>
+        <h1><span class="ball">⚽</span> Helix World Cup 2026 Pool</h1>
+        <div class="sub">Pick a team, survive the knockouts, win the pot.</div>
+      </div>
+      <div class="phase-pill">Status: <b id="phaseLabel">…</b></div>
+    </header>
+
+    <div id="winnerBanner"></div>
+
+    <details class="rules card" style="margin:14px 0;">
+      <summary>How it works &amp; the rules</summary>
+      <ul>
+        <li><b>$5 to enter.</b> Pick any of the 48 teams (more than one person can pick the same team at this stage).</li>
+        <li>If your team is knocked out, <b>you're out</b> — unless you buy back in.</li>
+        <li><b>Round of 32 buy-back: $10.</b> Pick any team still alive that <b>no surviving player already holds</b>.</li>
+        <li><b>Round of 16 buy-back: $15.</b> Same rule — and this is the <b>last</b> chance to buy back in.</li>
+        <li>After the Round of 16, all bets are locked. Ride your team to the final.</li>
+        <li><b>Winner takes all:</b> whoever holds the champion takes the pot. (Split evenly if more than one person holds them.)</li>
+        <li><b>If nobody picked the champion:</b> the pot goes to whoever's team made it the <b>farthest</b> in the tournament (split evenly on a tie).</li>
+        <li>This site just tracks the pool — settle up with each other (Venmo/cash). The admin marks who's paid.</li>
+      </ul>
+    </details>
+
+    <div class="grid cols-3" style="margin-bottom:16px;">
+      <div class="card stat"><div class="n" id="potTotal">$0</div><div class="l">Total pot</div></div>
+      <div class="card stat"><div class="n" id="potPaid">$0</div><div class="l">Collected</div></div>
+      <div class="card stat"><div class="n" id="playerCount">0</div><div class="l">Players in</div></div>
+    </div>
+
+    <!-- Join / buy-back action area -->
+    <div class="card" id="actionCard" style="margin-bottom:16px;">
+      <div id="joinBox">
+        <h2>Join the pool — $5</h2>
+        <div class="row">
+          <div><label for="name">Your name</label><input id="name" placeholder="Jordan Smith" /></div>
+          <div><label for="email">Work email</label><input id="email" type="email" placeholder="you@helixcollective.com" /></div>
+        </div>
+        <label for="teamSelect">Pick your team</label>
+        <select id="teamSelect"></select>
+        <div style="margin-top:14px;"><button id="joinBtn">Join for $5</button></div>
+      </div>
+
+      <div id="buybackBox" style="display:none;">
+        <h2 id="buybackTitle">Buy back in</h2>
+        <p class="muted" id="buybackHint"></p>
+        <label for="bbEmail">Email you joined with</label>
+        <input id="bbEmail" type="email" placeholder="you@helixcollective.com" />
+        <label for="bbTeamSelect">Pick an available team</label>
+        <select id="bbTeamSelect"></select>
+        <div style="margin-top:14px;"><button id="buybackBtn">Buy back in</button></div>
+      </div>
+
+      <div id="closedBox" style="display:none;">
+        <h2>Bets are closed</h2>
+        <p class="muted">No more entries or buy-backs. Check the standings below.</p>
+      </div>
+
+      <div class="msg" id="msg"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <h2>Standings</h2>
+      <table>
+        <thead>
+          <tr><th>Player</th><th>Team</th><th>Status</th><th>Paid</th><th>In for</th></tr>
+        </thead>
+        <tbody id="standings"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Teams</h2>
+      <div id="teamsByGroup"></div>
+    </div>
+
+    <p class="center" style="margin-top:24px;">
+      <a class="navlink" href="/admin.html">Admin panel →</a>
+    </p>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
