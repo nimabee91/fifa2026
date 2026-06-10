@@ -100,6 +100,16 @@ async function delTeam(teamId) {
   try { await api("/api/admin/team/delete", { teamId }, true); refresh(); }
   catch (e) { showMsg(e.message, false); }
 }
+async function deletePlayer(id) {
+  if (!confirm("Remove this player and ALL their bets? This frees their email to rejoin.")) return;
+  try { await api("/api/admin/player/delete", { playerId: id }, true); showMsg("Player removed.", true); refresh(); }
+  catch (e) { showMsg(e.message, false); }
+}
+async function deleteEntry(id) {
+  if (!confirm("Remove this bet? (If it's their only bet, the player is removed too.)")) return;
+  try { await api("/api/admin/entry/delete", { entryId: id }, true); showMsg("Bet removed.", true); refresh(); }
+  catch (e) { showMsg(e.message, false); }
+}
 async function saveMatchTeams(id) {
   const home = $(`mh-${id}`).value, away = $(`ma-${id}`).value;
   try {
@@ -129,7 +139,7 @@ async function saveGroupScore(id) {
   catch (e) { showMsg(e.message, false); }
 }
 // expose for inline handlers
-Object.assign(window, { togglePaid, eliminate, revive, champion, delTeam, saveMatchTeams, saveMatchScore, saveGroupScore });
+Object.assign(window, { togglePaid, eliminate, revive, champion, delTeam, saveMatchTeams, saveMatchScore, saveGroupScore, deletePlayer, deleteEntry });
 
 function teamOptions(teams, selectedId) {
   return `<option value="">— team —</option>` +
@@ -196,12 +206,13 @@ function render(state) {
               const lbl = h.paid ? "Paid" : "Mark paid";
               const note = h.active ? "" : " (out)";
               return `<div style="margin:3px 0;">${h.flag} ${h.team_name} · ${money(h.amount)}${note}
-                <button class="small ${h.paid ? "secondary" : ""}" onclick="togglePaid(${h.entry_id}, ${h.paid ? 0 : 1})">${lbl}</button></div>`;
+                <button class="small ${h.paid ? "secondary" : ""}" onclick="togglePaid(${h.entry_id}, ${h.paid ? 0 : 1})">${lbl}</button>
+                <button class="small danger" title="Remove this bet" onclick="deleteEntry(${h.entry_id})">✕</button></div>`;
             })
             .join("");
           const status = p.status === "in" ? `<span class="tag in">In</span>` : `<span class="tag out">Out</span>`;
           const owe = p.total_owed > 0 ? `<div class="muted" style="font-size:.8rem;">Owes ${money(p.total_owed)}</div>` : "";
-          return `<tr><td>${p.name}<div class="muted" style="font-size:.78rem;">${p.email}</div></td><td>${stakes}</td><td>${status}${owe}</td></tr>`;
+          return `<tr><td>${p.name}<div class="muted" style="font-size:.78rem;">${p.email}</div></td><td>${stakes}</td><td>${status}${owe}<div style="margin-top:6px;"><button class="small danger" onclick="deletePlayer(${p.id})">Remove player</button></div></td></tr>`;
         })
         .join("")
     : `<tr><td colspan="3" class="muted center">No players yet.</td></tr>`;

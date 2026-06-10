@@ -75,6 +75,8 @@ async function handleApi(request: Request, env: Env, path: string): Promise<Resp
     if (path === "/api/admin/eliminate" && method === "POST") return eliminate(request, env);
     if (path === "/api/admin/revive" && method === "POST") return revive(request, env);
     if (path === "/api/admin/paid" && method === "POST") return setPaid(request, env);
+    if (path === "/api/admin/player/delete" && method === "POST") return deletePlayer(request, env);
+    if (path === "/api/admin/entry/delete" && method === "POST") return deleteEntry(request, env);
     if (path === "/api/admin/champion" && method === "POST") return setChampion(request, env);
     if (path === "/api/admin/team" && method === "POST") return upsertTeam(request, env);
     if (path === "/api/admin/team/delete" && method === "POST") return deleteTeam(request, env);
@@ -352,6 +354,31 @@ async function setPaid(request: Request, env: Env): Promise<Response> {
   const entryId = Number(body.entryId);
   if (!entryId) return err("Missing entry.");
   await env.DB.prepare("UPDATE entries SET paid = ? WHERE id = ?").bind(body.paid ? 1 : 0, entryId).run();
+  return json({ ok: true });
+}
+
+// Remove a whole player and all their bets (frees their email to rejoin).
+async function deletePlayer(request: Request, env: Env): Promise<Response> {
+  const body = (await request.json().catch(() => ({}))) as any;
+  const playerId = Number(body.playerId);
+  if (!playerId) return err("Missing player.");
+  await env.DB.batch([
+    env.DB.prepare("DELETE FROM entries WHERE player_id = ?").bind(playerId),
+    env.DB.prepare("DELETE FROM players WHERE id = ?").bind(playerId),
+  ]);
+  return json({ ok: true });
+}
+
+// Remove a single bet. If it was the player's only one, remove the player too.
+async function deleteEntry(request: Request, env: Env): Promise<Response> {
+  const body = (await request.json().catch(() => ({}))) as any;
+  const entryId = Number(body.entryId);
+  if (!entryId) return err("Missing bet.");
+  const e = await env.DB.prepare("SELECT player_id FROM entries WHERE id = ?").bind(entryId).first<any>();
+  if (!e) return err("Bet not found.");
+  await env.DB.prepare("DELETE FROM entries WHERE id = ?").bind(entryId).run();
+  const cnt = await env.DB.prepare("SELECT COUNT(*) AS n FROM entries WHERE player_id = ?").bind(e.player_id).first<any>();
+  if (cnt && cnt.n === 0) await env.DB.prepare("DELETE FROM players WHERE id = ?").bind(e.player_id).run();
   return json({ ok: true });
 }
 
