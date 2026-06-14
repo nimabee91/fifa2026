@@ -158,9 +158,9 @@ function renderKoAdmin(state) {
       const as = m.away_score != null ? m.away_score : "";
       return `<div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;border:1px solid var(--line);border-radius:8px;padding:6px;margin:4px 0;">
         <select id="mh-${m.id}" style="width:auto;flex:1;min-width:110px;">${teamOptions(teams, hSel)}</select>
-        <input id="hs-${m.id}" type="number" min="0" value="${hs}" style="width:46px;text-align:center;" />
+        <input id="hs-${m.id}" type="number" min="0" value="${hs}" class="score-in" />
         <span class="muted">-</span>
-        <input id="as-${m.id}" type="number" min="0" value="${as}" style="width:46px;text-align:center;" />
+        <input id="as-${m.id}" type="number" min="0" value="${as}" class="score-in" />
         <select id="ma-${m.id}" style="width:auto;flex:1;min-width:110px;">${teamOptions(teams, aSel)}</select>
         <button class="small secondary" onclick="saveMatchTeams(${m.id})">Set</button>
         <button class="small" onclick="saveMatchScore(${m.id})">${m.played ? "Update" : "Score"}</button>
@@ -182,9 +182,9 @@ function renderGroupAdmin(state) {
       const an = m.away ? `${m.away.flag} ${m.away.name}` : "?";
       return `<div style="display:flex;gap:6px;align-items:center;margin:4px 0;font-size:.85rem;">
         <span style="flex:1;text-align:right;">${hn}</span>
-        <input id="ghs-${m.id}" type="number" min="0" value="${hs}" style="width:44px;text-align:center;" />
+        <input id="ghs-${m.id}" type="number" min="0" value="${hs}" class="score-in" />
         <span class="muted">-</span>
-        <input id="gas-${m.id}" type="number" min="0" value="${as}" style="width:44px;text-align:center;" />
+        <input id="gas-${m.id}" type="number" min="0" value="${as}" class="score-in" />
         <span style="flex:1;">${an}</span>
         <button class="small" onclick="saveGroupScore(${m.id})">${m.played ? "Update" : "Save"}</button>
       </div>`;

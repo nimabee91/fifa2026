@@ -161,6 +161,17 @@ details.rules li { margin: 4px 0; }
 .team-out { opacity: .5; }
 .team-out .gname { text-decoration: line-through; }
 
+/* Score entry inputs (admin) — wide enough for two digits, no spinner arrows */
+.score-in {
+  width: 54px;
+  padding: 8px 4px;
+  text-align: center;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.score-in::-webkit-outer-spin-button,
+.score-in::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
 /* Match cards (knockout columns) */
 .match {
   background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
